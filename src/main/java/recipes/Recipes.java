@@ -1,11 +1,12 @@
 package recipes;
 
-import java.sql.Connection;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 
 import recipes.dao.DbConnection;
+import recipes.entity.Recipe;
 import recipes.exception.DbException;
 import recipes.service.RecipeService;
 
@@ -13,9 +14,14 @@ public class Recipes {
 	
 	private Scanner scanner = new Scanner(System.in);
 	private RecipeService recipeService = new RecipeService();
+	private Recipe curRecipe;
 	
 	private List <String> operations = List.of(
-			"1) Create and populate all tables"
+			"1) Create and populate all tables",
+			"2) Add a recipe",
+			"3) List recipes",
+			"4) Select working recipe"
+			 
 			);
 	
 
@@ -43,6 +49,18 @@ public class Recipes {
 				createTables();
 				break;
 				
+			case 2:
+				addRecipe();
+				break;
+			
+			case 3:
+				listRecipes();
+				break;
+				
+			case 4:
+				setCurrentRecipe();
+				break;
+				
 				default:
 					System.out.println("\n" + operation + " is not valid.  Try again.");
 			}
@@ -50,6 +68,71 @@ public class Recipes {
 				System.out.println("\nError: " + e.toString() + " Try again");
 			}
 		}
+	}
+
+
+	private void setCurrentRecipe() {
+		List<Recipe> recipes = listRecipes();
+		
+		Integer recipeId = getIntInput("Select a recipe ID");
+		
+		curRecipe = null;
+		
+		for(Recipe recipe : recipes) {
+			if(recipe.getRecipeId().equals(recipeId)) {
+				curRecipe = recipeService.fetchRecipeById(recipeId);
+				break;
+			}
+		}
+		 if(Objects.isNull(curRecipe)) {
+			 System.out.println("\nInvalid recipe selected.");
+		 }
+		
+	}
+
+
+	private List<Recipe> listRecipes() {
+		List<Recipe> recipes = recipeService.fetchRecipes();
+		
+		System.out.println("\nRecipes: ");
+		
+		recipes.forEach(recipe -> System.out.println("    " + recipe.getRecipeId() + ": " + recipe.getRecipeName()));
+		
+		return recipes;
+	}
+
+
+	private void addRecipe() {
+		String name = getStringInput("Enter the recipe name");
+		String notes = getStringInput("Enter the recipe notes");
+		Integer numServings = getIntInput("Enter the number of servings");
+		Integer prepMinutes = getIntInput("Enter the preperation time in minutes");
+		Integer cookMinutes = getIntInput("Enter the cook time in minutes");
+		
+		LocalTime prepTime = minutesToLocalTime(prepMinutes);
+		LocalTime cookTime = minutesToLocalTime(cookMinutes);
+		
+		Recipe recipe = new Recipe();
+		
+		recipe.setRecipeName(name);
+		recipe.setNotes(notes);
+		recipe.setNumServings(numServings);
+		recipe.setPrepTime(prepTime);
+		recipe.setCookTime(cookTime);
+		
+		Recipe dbRecipe = recipeService.addRecipe(recipe);
+		System.out.println("You added this recipe: \n" + dbRecipe);
+		
+		curRecipe = recipeService.fetchRecipeById(dbRecipe.getRecipeId());
+	}
+
+
+	private LocalTime minutesToLocalTime(Integer numMinutes) {
+		int min = Objects.isNull(numMinutes) ? 0 : numMinutes;
+		int hours = min / 60;
+		int minutes = min % 60;
+		
+		return LocalTime.of(hours, minutes);
 	}
 
 

@@ -8,7 +8,7 @@ DROP TABLE IF EXISTS recipe;
 CREATE TABLE recipe (
 recipe_id INT AUTO_INCREMENT NOT NULL,
 recipe_name VARCHAR(128) NOT NULL,
-note TEXT,
+notes TEXT,
 num_servings INT,
 prep_time TIME,
 cook_time TIME,
@@ -53,7 +53,7 @@ unit_id INT,
 ingredient_name VARCHAR(64) NOT NULL,
 instruction VARCHAR(64),
 ingredient_order INT NOT NULL,
-ingredient_amount DECIMAL (7,2),
+amount DECIMAL (7,2),
 PRIMARY KEY (ingredient_id),
 FOREIGN KEY (recipe_id) REFERENCES recipe (recipe_id) ON DELETE CASCADE,
 FOREIGN KEY (unit_id) REFERENCES unit (unit_id) 
